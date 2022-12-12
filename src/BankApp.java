@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class BankApp {
     private String name;
@@ -6,6 +7,7 @@ public class BankApp {
     private BagelShop bagelShop;
     private CreditCard creditCard;
     private CreditCard secondCreditCard;
+    private CreditCard mainCreditCard;
     private boolean quit;
     private int actionNum;
 
@@ -14,6 +16,7 @@ public class BankApp {
         bank = userBank;
         bagelShop = shop;
         creditCard = card;
+        mainCreditCard = card;
         quit = false;
         secondCreditCard = null;
         actionNum = 0;
@@ -31,10 +34,67 @@ public class BankApp {
     }
 
     public String actionResults(int choiceNum) {
-        this.actionNum = choiceNum;
+        Scanner myObj = new Scanner(System.in);
         String results = "";
         if (choiceNum == 1) {
-            results = "How many bagels would you like to purchase and provide your card pin.";
+            System.out.println("How many bagels do you want to buy?");
+            int amnt = Integer.parseInt(myObj.nextLine());
+            System.out.println("Please provide your personal pin.");
+            String pin = myObj.nextLine();
+            if (bagelShop.payForBagels(mainCreditCard, amnt, pin)) {
+                results = "Bought " + amnt + " bagels.";
+            } else {
+                results = "Failed. Incorrect Pin.";
+            }
+        }
+        if (choiceNum == 2) {
+            System.out.println("How many bagels do you want to return?");
+            int amnt = Integer.parseInt(myObj.nextLine());
+            System.out.println("Please provide your personal pin.");
+            String pin = myObj.nextLine();
+            if (bagelShop.returnBagels(mainCreditCard, amnt, pin)) {
+                results = "Returned " + amnt + " bagels.";
+            } else {
+                results = "Failed. Incorrect Pin.";
+            }
+        }
+        if (choiceNum == 3) {
+            if (secondCreditCard == null) {
+                System.out.println("Adding a new credit card. Please provide it's personal pin.");
+                String pin = myObj.nextLine();
+                secondCreditCard = new CreditCard(name, pin);
+            } else {
+                System.out.println("Which credit card would you like to use as your main? (Please type \"1\" or \"2\"");
+                if (myObj.nextLine() == "1") {
+                    mainCreditCard = creditCard;
+                    results = "First credit card was set as main";
+                }  else if (myObj.nextLine() == "2") {
+                    mainCreditCard = secondCreditCard;
+                    results = "Second credit card was set as main";
+                } else {
+                    results = "Not a valid answer";
+                }
+            }
+        }
+        if (choiceNum == 4) {
+            if (secondCreditCard == null) {
+                results = "Don't have a second credit card. Please add one if you wish to compare";
+            } else if (creditCard.getBalanceOwed() > secondCreditCard.getBalanceOwed()) {
+                results = "Credit card 1 has a higher balance than credit card 2";
+            } else if (creditCard.getBalanceOwed() < secondCreditCard.getBalanceOwed()) {
+                results = "Credit card 2 has a higher balance than credit card 1";
+            } else {
+                results = "Both have the same balance";
+            }
+        }
+        if (choiceNum == 5) {
+            System.out.println("How much money do you want to deposit into the bank?");
+            int amnt = Integer.parseInt(myObj.nextLine());
+            bank.vendorDeposit(amnt);
+            results = "Deposited $" + amnt + " into the bank";
+        }
+        if (choiceNum == 6) {
+            results = bagelShop.toString();
         }
         if (choiceNum == 7) {
             results = "Exited the bank app.";
@@ -43,24 +103,7 @@ public class BankApp {
         return results;
     }
 
-    public String doAction(String userInputs) {
-        ArrayList<String> inputs = new ArrayList<>();
-        while (userInputs.indexOf(",") != -1) {
-            String input = userInputs.substring(0, userInputs.indexOf(","));
-            userInputs = userInputs.substring(userInputs.indexOf(",") + 2);
-            inputs.add(input);
-        }
-        inputs.add(userInputs);
-        if (actionNum == 1) {
-            if (bagelShop.payForBagels(creditCard, Integer.parseInt(inputs.get(0)), inputs.get(1))) {
-                return "You have bought " + inputs.get(0) + " bagels!";
-            } else {
-                return "Incorrect card number";
-            }
-        } else {
-            return "failed";
-        }
-    }
+
 
     public boolean isQuit() {
         return quit;
